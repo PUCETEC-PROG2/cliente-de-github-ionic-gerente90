@@ -1,0 +1,35 @@
+ion-card {
+  margin: 12px;
+}
+
+.repo-label h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.repo-label p {
+  margin: 0;
+  color: var(--ion-color-medium);
+  font-size: 13px;
+}
+
+ion-thumbnail img {
+  object-fit: cover;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+}
+
+/* small screens tweaks */
+@media (max-width: 480px) {
+  ion-card {
+    margin: 8px 6px;
+  }
+  .repo-label h2 {
+    font-size: 15px;
+  }
+  .repo-label p {
+    font-size: 12px;
+  }
+}

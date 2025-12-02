@@ -1,0 +1,31 @@
+/* Form container styling */
+.form-container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-field {
+  --padding-bottom: 12px;
+  --padding-top: 12px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+}
+
+.form-button {
+  --background: #6700ff;
+  --color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .form-container {
+    padding: 16px;
+    gap: 14px;
+  }
+}
+
+
