@@ -12,17 +12,21 @@ import {
 } from '@ionic/react';
 
 import './RepoItem.css';
+import { RepositoryItem } from '../interfaces/RepositoryItem';
 
 type Repo = {
-  id: string | number;
+  id?: string | number;
   name: string;
-  description?: string;
-  ownerAvatarUrl?: string;
+  description?: string | null;
+  ownerAvatarUrl?: string | null;
+  owner?: string | null;
+  language?: string | null;
+  imageUrl?: string | null;
 };
 
 type Props = {
-  repos?: Repo[];
-  onSelect?: (repo: Repo) => void;
+  repos?: (Repo | RepositoryItem)[];
+  onSelect?: (repo: Repo | RepositoryItem) => void;
   title?: string;
   subtitle?: string;
 };
