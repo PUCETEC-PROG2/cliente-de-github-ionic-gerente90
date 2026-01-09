@@ -1,33 +1,90 @@
 import React, { useState } from 'react';
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonInput, IonTextarea, IonButton, IonToast } from '@ionic/react';
+import {
+  IonButton,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardSubtitle,
+  IonCardTitle,
+  IonContent,
+  IonHeader,
+  IonInput,
+  IonLabel,
+  IonPage,
+  IonText,
+  IonTextarea,
+  IonTitle,
+  IonToast,
+  IonToggle,
+  IonToolbar,
+} from '@ionic/react';
 import './Tab2.css';
 import { useHistory } from 'react-router-dom';
+import { createRepository } from '../services/GithubService';
+
+type ToastState = {
+  open: boolean;
+  message: string;
+  color: 'success' | 'danger' | 'warning';
+};
 
 const Tab2: React.FC = () => {
+  const history = useHistory();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [showToast, setShowToast] = useState(false);
-  const history = useHistory();
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [toast, setToast] = useState<ToastState>({
+    open: false,
+    message: '',
+    color: 'success',
+  });
 
-  const handleSubmit = () => {
-    if (!name.trim()) {
-      setShowToast(true);
+  const handleSubmit = async () => {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setToast({
+        open: true,
+        message: 'El nombre del repositorio es obligatorio',
+        color: 'warning',
+      });
       return;
     }
 
-    const stored = localStorage.getItem('repos');
-    const repos = stored ? JSON.parse(stored) : [];
-    const newRepo = {
-      id: Date.now(),
-      name: name.trim(),
-      description: description.trim(),
-      ownerAvatarUrl: undefined,
-    };
-    repos.unshift(newRepo);
-    localStorage.setItem('repos', JSON.stringify(repos));
+    try {
+      setCreating(true);
+      const newRepo = await createRepository({
+        name: trimmedName,
+        description: description.trim() || undefined,
+        private: isPrivate,
+      });
 
-    // Navegar a la lista de repositorios
-    history.push('/tab1');
+      // Guardar en localStorage para mantener un caché mínimo
+      const stored = localStorage.getItem('repos');
+      const repos = stored ? JSON.parse(stored) : [];
+      localStorage.setItem('repos', JSON.stringify([newRepo, ...repos]));
+
+      setToast({
+        open: true,
+        message: `Repositorio "${newRepo.name}" creado correctamente`,
+        color: 'success',
+      });
+      setName('');
+      setDescription('');
+      setIsPrivate(false);
+
+      window.dispatchEvent(new CustomEvent('repos:refresh'));
+      history.push('/tab1');
+    } catch (error: any) {
+      console.error(error);
+      setToast({
+        open: true,
+        message: error?.message || 'No se pudo crear el repositorio',
+        color: 'danger',
+      });
+    } finally {
+      setCreating(false);
+    }
   };
 
   return (
@@ -44,36 +101,71 @@ const Tab2: React.FC = () => {
           </IonToolbar>
         </IonHeader>
 
-        <div className="form-container">
-          <IonInput
-            className="form-field"
-            label="Nombre del repositorio"
-            labelPlacement="floating"
-            fill="outline"
-            placeholder="android-project"
-            value={name}
-            onIonChange={e => setName((e.target as any).value)}
-          ></IonInput>
+        <div className="create-repo-wrapper">
+          <IonCard className="create-repo-card">
+            <IonCardHeader>
+              <IonCardSubtitle>GitHub</IonCardSubtitle>
+              <IonCardTitle>Nuevo repositorio</IonCardTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <p className="helper-text">
+                Completa los campos para crear un repositorio directamente en tu cuenta de GitHub.
+              </p>
+              <div className="form-group">
+                <IonLabel>Nombre</IonLabel>
+                <IonInput
+                  className="form-field"
+                  fill="outline"
+                  placeholder="mi-nuevo-proyecto"
+                  value={name}
+                  inputmode="text"
+                  autocapitalize="off"
+                  onIonChange={(event) => setName(event.detail.value ?? '')}
+                />
+                <IonText color="medium">Usa minúsculas, números y guiones.</IonText>
+              </div>
 
-          <IonTextarea
-            className="form-field"
-            label="Descripción del repositorio"
-            labelPlacement="floating"
-            fill="outline"
-            placeholder="Descripción del repositorio"
-            rows={6}
-            value={description}
-            onIonChange={e => setDescription((e.target as any).value)}
-          ></IonTextarea>
+              <div className="form-group">
+                <IonLabel>Descripción</IonLabel>
+                <IonTextarea
+                  className="form-field"
+                  fill="outline"
+                  autoGrow
+                  placeholder="Objetivo, stack o notas del repositorio"
+                  value={description}
+                  onIonChange={(event) => setDescription(event.detail.value ?? '')}
+                />
+              </div>
 
-          <IonButton expand="block" className="form-button" onClick={handleSubmit}>Guardar</IonButton>
+              <div className="toggle-row">
+                <div>
+                  <p className="toggle-title">Repositorio privado</p>
+                  <IonText color="medium">Solo tú y tus colaboradores lo verán.</IonText>
+                </div>
+                <IonToggle
+                  checked={isPrivate}
+                  onIonChange={(event) => setIsPrivate(event.detail.checked)}
+                />
+              </div>
+
+              <IonButton
+                expand="block"
+                className="form-button"
+                onClick={handleSubmit}
+                disabled={creating}
+              >
+                {creating ? 'Creando...' : 'Crear repositorio'}
+              </IonButton>
+            </IonCardContent>
+          </IonCard>
         </div>
 
         <IonToast
-          isOpen={showToast}
-          onDidDismiss={() => setShowToast(false)}
-          message="El nombre del repositorio es obligatorio"
-          duration={2000}
+          isOpen={toast.open}
+          onDidDismiss={() => setToast({ ...toast, open: false })}
+          message={toast.message}
+          duration={2600}
+          color={toast.color}
         />
       </IonContent>
     </IonPage>

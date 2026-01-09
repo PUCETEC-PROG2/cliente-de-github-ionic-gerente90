@@ -1,0 +1,31 @@
+ion-content {
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+.repo-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  color: var(--ion-color-medium);
+  gap: 12px;
+}
+
+.edit-modal-content {
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --padding-top: 20px;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.edit-form ion-input,
+.edit-form ion-textarea {
+  --border-radius: 12px;
+}
